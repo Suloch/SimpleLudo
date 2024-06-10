@@ -6,12 +6,13 @@ class Dice{
     sprites: Array<HTMLImageElement>;
     rolling: boolean = false;
     onclick: Function | null = null;
-    transform: Transform
-    
+    transform: Transform;
+    rnumber: number = 0;
 
     constructor(ctx: CanvasRenderingContext2D, x: number, y: number, input: Input){
         this.ctx = ctx;
         this.sprites = [];
+        
         for(let i = 0; i < 6; i++){
             this.sprites[i] = document.createElement('img');
             this.sprites[i].src = (i+1).toString() + '.png';
@@ -20,6 +21,7 @@ class Dice{
         this.transform = new Transform(x, y, 1, 50, 50);
 
         this.onclick = () => {
+            this.rnumber = Math.floor(Math.random() * 6);
             console.log('Dice Clicked!');
         }
 
@@ -27,14 +29,25 @@ class Dice{
     }
 
     render(){
-        this.ctx.drawImage(this.sprites[0], this.transform.x, this.transform.y, this.transform.w, this.transform.h);
+        this.ctx.drawImage(this.sprites[this.rnumber], this.transform.x, this.transform.y, this.transform.w, this.transform.h);
     }
 
 
          
 }
 
+class Piece{
+    ctx: CanvasRenderingContext2D;
 
+    constructor(){
+    }
+}
+
+
+class GreenPiece extends Piece{
+    
+    constructor(){}
+}
 
 class Player{
     
