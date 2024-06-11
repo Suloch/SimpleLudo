@@ -38,15 +38,21 @@ class Dice{
 
 class Piece{
     ctx: CanvasRenderingContext2D;
-
-    constructor(){
-    }
-}
-
-
-class GreenPiece extends Piece{
+    color : string
+    transform: Transform
+    cellId = -1;
     
-    constructor(){}
+    constructor(ctx: CanvasRenderingContext2D){
+        this.ctx = ctx;
+        this.transform = new Transform(200, 200, 1, 25, 25);
+        this.color = "pink";
+    }
+
+    render(){
+        this.ctx.fillStyle = this.color;
+        this.ctx.arc(this.transform.x, this.transform.y, this.transform.w, 0, 2 * Math.PI);
+        this.ctx.fill();
+    }
 }
 
 class Player{
@@ -58,6 +64,8 @@ class Player{
     transform: Transform
 
     _dice: Dice;
+
+    _pieces: Array<Piece> = [];
 
     constructor(ctx: CanvasRenderingContext2D, height: number, width: number, flipped: boolean, top: boolean, input: Input){
         this.ctx = ctx;
@@ -71,6 +79,9 @@ class Player{
             this.transform.y = height - this.transform.h - 10;
         }
         this._dice = new Dice(this.ctx, this.transform.x, this.transform.y, input);
+
+        this._pieces.push(new Piece(this.ctx));
+
         this.playing = true;
 
     }
@@ -82,7 +93,11 @@ class Player{
         if(this.playing){
             this._dice.render()
         }
+
+        for(let _piece of this._pieces){
+            _piece.render();
+        }
     }
 }
 
-export {Player};
+export {Player, Piece};

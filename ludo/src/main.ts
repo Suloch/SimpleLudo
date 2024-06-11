@@ -2,6 +2,7 @@ import './style.css'
 import { Transform } from './transform';
 import { Input } from './input';
 import { Player } from './player';
+import { Board } from './board';
 
 class Background{
     ctx: CanvasRenderingContext2D;
@@ -29,6 +30,7 @@ class LudoGame{
     windowWidth: number;
     background: Background;
     player: Player;
+    board: Board;
 
     constructor(){
         this.windowWidth = 0.9 * Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
@@ -52,6 +54,9 @@ class LudoGame{
         this.input = new Input(this.canvas, this.ctx);
 
         this.player = new Player(this.ctx, this.canvas.height, this.canvas.width, false, true, this.input);
+
+        this.board = new Board(this.ctx, this.canvas.height, this.canvas.width);
+
         this.startGameLoop();
     }
 
@@ -76,6 +81,7 @@ class LudoGame{
         this.background.render();
         this.player.render();
         this.input.render();
+        this.board.render();
     }
 
     update(dt: number){}
