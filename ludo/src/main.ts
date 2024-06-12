@@ -1,7 +1,7 @@
 import './style.css'
 import { Transform } from './transform';
 import { Input } from './input';
-import { Player } from './player';
+import { Piece, Player } from './player';
 import { Board } from './board';
 
 class Background{
@@ -57,6 +57,9 @@ class LudoGame{
 
         this.board = new Board(this.ctx, this.canvas.height, this.canvas.width);
 
+        for(let i=0; i<4; i++){
+            this.board.jail(this.player.pieces[i], this.player.color);
+        }
         this.startGameLoop();
     }
 
@@ -66,7 +69,7 @@ class LudoGame{
             let dt = timestamp - prevTime; 
 
             if(dt > 20 || prevTime == 0){
-                this.render();
+                this.render(dt);
                 this.update(20);
                 prevTime = timestamp;
             }
@@ -77,14 +80,27 @@ class LudoGame{
 
     }
 
-    render(){
+    render(dt: number){
         this.background.render();
         this.player.render();
         this.input.render();
-        this.board.render();
+        this.board.render(dt);
     }
 
-    update(dt: number){}
+    update(dt: number){
+
+        if(this.player.playing){
+            if(!this.player._dice.rolled){
+                //play dice highlight animation
+            }else{
+                let number = this.player._dice.rnumber;
+                //get available moves and highlight
+                if(this.player._dice.rnumber == 6){
+                    
+                }
+            }
+        }
+    }
 
 }
 

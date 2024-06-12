@@ -4,7 +4,7 @@ import { Input } from "./input";
 class Dice{
     ctx: CanvasRenderingContext2D;
     sprites: Array<HTMLImageElement>;
-    rolling: boolean = false;
+    rolled: boolean = false;
     onclick: Function | null = null;
     transform: Transform;
     rnumber: number = 0;
@@ -41,17 +41,17 @@ class Piece{
     color : string
     transform: Transform
     cellId = -1;
+    jailed = true;
     
-    constructor(ctx: CanvasRenderingContext2D){
+    constructor(ctx: CanvasRenderingContext2D, color: string){
         this.ctx = ctx;
         this.transform = new Transform(200, 200, 1, 25, 25);
-        this.color = "pink";
+        this.color = color;
     }
 
     render(){
         this.ctx.fillStyle = this.color;
-        this.ctx.arc(this.transform.x, this.transform.y, this.transform.w, 0, 2 * Math.PI);
-        this.ctx.fill();
+        this.ctx.fillRect(this.transform.x, this.transform.y, this.transform.w, this.transform.h);
     }
 }
 
@@ -65,7 +65,9 @@ class Player{
 
     _dice: Dice;
 
-    _pieces: Array<Piece> = [];
+    pieces: Array<Piece> = [];
+
+    color: string = "red";
 
     constructor(ctx: CanvasRenderingContext2D, height: number, width: number, flipped: boolean, top: boolean, input: Input){
         this.ctx = ctx;
@@ -80,10 +82,11 @@ class Player{
         }
         this._dice = new Dice(this.ctx, this.transform.x, this.transform.y, input);
 
-        this._pieces.push(new Piece(this.ctx));
+        for(let i=0; i<4; i++)
+            this.pieces.push(new Piece(this.ctx, this.color));
 
         this.playing = true;
-
+        
     }
 
     render(){
@@ -94,10 +97,14 @@ class Player{
             this._dice.render()
         }
 
-        for(let _piece of this._pieces){
-            _piece.render();
+        for(let piece of this.pieces){
+            piece.render();
         }
-    }
+        }
+        
+        update(dt: number){
+            
+        }
 }
 
 export {Player, Piece};

@@ -1,11 +1,11 @@
 import { Transform } from "./transform"
 import { Piece } from "./player";
+import { highlightAnimation } from "./animator";
 
 class Cell{
     ctx: CanvasRenderingContext2D
     transform: Transform
     home: boolean
-    jail: boolean
     star: boolean
     pieces: Array<Piece> = [];
     blueTurn: boolean
@@ -13,10 +13,10 @@ class Cell{
     greenTurn: boolean
     yellowTurn: boolean
 
+
     constructor(ctx: CanvasRenderingContext2D, x: number, y: number){
         this.transform = new Transform(x, y, 1, 40, 40);
         this.home = false;
-        this.jail = false;
         this.star = false;
         this.blueTurn = false;
         this.redTurn = false;
@@ -25,13 +25,18 @@ class Cell{
         this.ctx = ctx;
     }
 
-    render (){
-        this.ctx.fillStyle = 'red';
-        this.ctx.fillRect(this.transform.x, this.transform.y, this.transform.w, this.transform.h);
+    render (dt: number){
+        highlightAnimation.render(this.ctx, dt, this.transform);
     }
 
     putPiece(p: Piece){
         this.pieces.push(p);
+        p.transform.x = this.transform.x;
+        p.transform.y = this.transform.y;
+    }
+
+    isempty(){
+        return this.pieces.length == 0;
     }
 }
 
@@ -43,6 +48,10 @@ class Board{
 
     transform: Transform;
     ctx: CanvasRenderingContext2D
+
+    redJail: Map<number, Cell> = new Map();
+
+    highlighted: Array<Cell> = []
 
     constructor(ctx: CanvasRenderingContext2D, h: number, w: number){
         this.ctx = ctx;
@@ -84,6 +93,13 @@ class Board{
             this.path.get(i+49).greenTurn = true;
 
         }
+
+        this.redJail.set(100, new Cell(ctx, 0.765*w, 0.125*h));
+        this.redJail.set(101, new Cell(ctx, 0.765*w, 0.25*h));
+        this.redJail.set(102, new Cell(ctx, 0.70*w, 0.19*h));
+        this.redJail.set(103, new Cell(ctx, 0.83*w, 0.19*h));
+
+        this.highlighted.push(this.redJail.get(100));
         
     }
 
@@ -91,9 +107,33 @@ class Board{
         
     }
 
-    render(){
+    jail(piece: Piece, color: string){
+        let start = 100;
+        let jail = this.redJail;
+
+        switch(color){
+            case 'blue': start = 200; jail = this.redJail;
+        }
+
+        for(let i=start; i<start+4; i++){
+            if(jail.get(i)?.isempty()){
+                jail.get(i).putPiece(piece);
+                break;
+            }
+        }
+    }
+
+
+    render(dt: number){
         for(let [id, cell] of this.path){
-            cell.render();
+            // cell.render();
+        }
+
+        for(let [id, cell] of this.redJail){
+            // cell.render();
+        }
+        for(let cell of this.highlighted){
+            cell.render(dt);
         }
     }
 }
