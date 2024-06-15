@@ -1,5 +1,5 @@
 import { Transform } from "./transform";
-import { redPath } from "./paths";
+import { bluePath, greenPath, redPath, yellowPath } from "./paths";
 import { Input } from "./input";
 import { Board } from "./board";
 
@@ -58,7 +58,7 @@ class Piece{
     pos: number = -1;
     move : Function;
     onPieceClick : Function | null
-    pathLength: number;
+    path: Array<number>;
     speed = 0.05;
 
     constructor(ctx: CanvasRenderingContext2D, color: string, input: Input, id: number, move: Function){
@@ -75,7 +75,10 @@ class Piece{
         }
 
         switch(color){
-            case "red": this.pathLength = redPath.length;
+            case "red": this.path = redPath; break;
+            case "blue": this.path = bluePath; break;
+            case "yellow": this.path = yellowPath; break;
+            case "green": this.path = greenPath; break;
         }
         input.addClickable(this.transform, this.onPieceClick);
     }
@@ -83,13 +86,17 @@ class Piece{
     render(){
         this.ctx.fillStyle = this.color;
         this.ctx.fillRect(this.transform.x, this.transform.y, this.transform.w, this.transform.h);
+        this.ctx.beginPath();
+        this.ctx.strokeStyle = "black";
+        this.ctx.rect(this.transform.x, this.transform.y, this.transform.w, this.transform.h);
+        this.ctx.stroke();
     }
 
     validMove(n: number): boolean{
         if(this.jailed && n == 6){
             return true;
         }
-        if(!this.jailed && this.pos + n < this.pathLength)
+        if(!this.jailed && this.pos + n < this.path.length)
             return true;
         return false;
     }
@@ -117,38 +124,44 @@ class Player{
 
     pieces: Array<Piece> = [];
 
-    color: string = "red";
+    color: string = "yellow";
 
     canMove = false;
 
     selectedPiece = -1;
 
     stage = TurnStage.FindingMoves
-
+    
+    nextPlayer : Player;
 
     
     board: Board
 
-    constructor(ctx: CanvasRenderingContext2D, height: number, width: number, flipped: boolean, top: boolean, input: Input, board: Board){
+    constructor(ctx: CanvasRenderingContext2D, height: number, width: number, flipped: boolean, top: boolean, input: Input, board: Board, color: string){
         this.ctx = ctx;
         this.transform = new Transform(10, 10, 1, 0.25 * width, 0.1 * height);
-
         if(flipped){
-            this.transform.x = width - this.transform.w - 10;    
+            this.transform.x = width - this.transform.w - 10;   
         }
 
         if(!top){
             this.transform.y = height - this.transform.h - 10;
         }
+
+        this.color = color;
         this._dice = new Dice(this.ctx, this.transform.x, this.transform.y, input);
-
-
+        let start = 0;
+        switch(color){
+            case "blue": start = 100; break;
+            case "green": start = 200; break;
+            case  "yellow": start = 300; break;
+        }
         for(let i=0; i<4; i++){
-            this.pieces.push(new Piece(this.ctx, this.color, input, i, this.move));
+            this.pieces.push(new Piece(this.ctx, this.color, input, start+i, this.move));
         }
 
 
-        this.playing = true;
+        this.playing = false;
         this.board = board;
         
     }
@@ -159,11 +172,12 @@ class Player{
             piece.canMove = false;
             this.board.highlighted = []
         }
+        this.stage = TurnStage.Ending;
     }
 
     render(){
-        this.ctx.fillStyle = "blue";
-        this.ctx.fillRect(this.transform.x, this.transform.y, this.transform.w, this.transform.h);
+        //this.ctx.fillStyle = "blue";
+        //this.ctx.fillRect(this.transform.x, this.transform.y, this.transform.w, this.transform.h);
 
         if(this.playing){
             this._dice.render()
@@ -178,6 +192,34 @@ class Player{
        for(let piece of this.pieces){
             piece.update(dt);
        } 
+
+        if(this.playing){
+            if(!this._dice.rolled){
+                //play dice highlight animation
+            }else{
+                let noValidMoves = true;
+                //get available moves and highlight
+                if(this.stage == TurnStage.FindingMoves){
+                    for(let piece of this.pieces){
+                        if(piece.validMove(this._dice.rnumber+1)){
+                            piece.canMove = true;
+                            noValidMoves = false;
+                            this.board.highlighted.push(piece.cellId);
+                        }
+                    }
+                    if(noValidMoves){
+                        this.stage = TurnStage.Ending;
+                    }else{
+                        this.stage = TurnStage.Moving;
+                    }
+                }
+                if(this.stage == TurnStage.Ending){
+                    this._dice.rolled = false;
+                    this.stage = TurnStage.FindingMoves;
+                    this.playing = false;
+                }
+            }
+        }
     }
 }
 

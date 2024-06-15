@@ -8,7 +8,7 @@ class Cell{
     transform: Transform
     home: boolean
     star: boolean
-    pieces: Array<Piece> = [];
+    pieces: Array<Number> = [];
     blueTurn: boolean
     redTurn: boolean
     greenTurn: boolean
@@ -34,10 +34,15 @@ class Cell{
     }
 
     putPiece(p: Piece){
-        this.pieces.push(p);
+        this.pieces.push(p.id);
         p.targetTransform.x = this.transform.x;
         p.targetTransform.y = this.transform.y;
     }
+
+    removePiece(p: Piece){
+        this.pieces.splice(this.pieces.indexOf(p.id));
+    }
+
 
     isempty(){
         return this.pieces.length == 0;
@@ -104,10 +109,25 @@ class Board{
         this.path.set(102, new Cell(ctx, 0.70*w, 0.19*h));
         this.path.set(103, new Cell(ctx, 0.83*w, 0.19*h));
 
+        this.path.set(200, new Cell(ctx, 0.765*w, 0.72*h));
+        this.path.set(201, new Cell(ctx, 0.765*w, 0.845*h));
+        this.path.set(202, new Cell(ctx, 0.70*w, 0.785*h));
+        this.path.set(203, new Cell(ctx, 0.83*w, 0.785*h));
+
+        this.path.set(300, new Cell(ctx, 0.19*w, 0.72*h));
+        this.path.set(301, new Cell(ctx, 0.19*w, 0.845*h));
+        this.path.set(302, new Cell(ctx, 0.125*w, 0.785*h));
+        this.path.set(303, new Cell(ctx, 0.255*w, 0.785*h));
+
+        this.path.set(400, new Cell(ctx, 0.19*w, 0.125*h));
+        this.path.set(401, new Cell(ctx, 0.19*w, 0.25*h));
+        this.path.set(402, new Cell(ctx, 0.125*w, 0.19*h));
+        this.path.set(403, new Cell(ctx, 0.255*w, 0.19*h));
         
     }
 
     move(piece: Piece, steps: number){
+        this.path.get(piece.cellId)?.removePiece(piece);
         if(piece.jailed && steps == 6){
             piece.pos = 0;
             piece.jailed = false;
@@ -115,11 +135,16 @@ class Board{
             piece.pos ++;
             steps--;
         }
-        piece.cellId = redPath[piece.pos];
+        piece.cellId = piece.path[piece.pos];
         this.path.get(piece.cellId)?.putPiece(piece);
+
+        if(steps == 0){
+            console.log(this.path.get(piece.cellId)?.pieces);
+        }
 
         if(steps != 0 && steps != 6){
             setTimeout(() => {this.move(piece, steps)}, 1000);
+            return;
         }
     }
 
@@ -128,7 +153,9 @@ class Board{
         
 
         switch(color){
-            case 'blue': start = 200;
+            case 'blue': start = 200; break;
+            case 'yellow': start = 300; break;
+            case 'green': start = 400; break;
         }
 
         for(let i=start; i<start+4; i++){

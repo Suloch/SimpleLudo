@@ -29,7 +29,12 @@ class LudoGame{
     windowHeight: number;
     windowWidth: number;
     background: Background;
-    player: Player;
+    player1: Player;
+    player2: Player;
+    player3: Player;
+    player4: Player;
+    
+    currPlayer: Player;
     board: Board;
 
     constructor(){
@@ -55,10 +60,24 @@ class LudoGame{
 
         this.board = new Board(this.ctx, this.canvas.height, this.canvas.width);
 
-        this.player = new Player(this.ctx, this.canvas.height, this.canvas.width, false, true, this.input, this.board);
+        this.player1 = new Player(this.ctx, this.canvas.height, this.canvas.width, true, true, this.input, this.board, "red");
+        this.player2 = new Player(this.ctx, this.canvas.height, this.canvas.width, true, false, this.input, this.board, "blue");
+        this.player3 = new Player(this.ctx, this.canvas.height, this.canvas.width, false, false, this.input, this.board, "yellow");
+        this.player4 = new Player(this.ctx, this.canvas.height, this.canvas.width, false, true, this.input, this.board, "green");
+
+        this.player1.nextPlayer = this.player2;
+        this.player2.nextPlayer = this.player3;
+        this.player3.nextPlayer = this.player4;
+        this.player4.nextPlayer = this.player1;
+
+        this.currPlayer = this.player1;
+        this.currPlayer.playing = true;
 
         for(let i=0; i<4; i++){
-            this.board.jail(this.player.pieces[i], this.player.color);
+            this.board.jail(this.player1.pieces[i], this.player1.color);
+            this.board.jail(this.player2.pieces[i], this.player2.color);
+            this.board.jail(this.player3.pieces[i], this.player3.color);
+            this.board.jail(this.player4.pieces[i], this.player4.color);
         }
         this.startGameLoop();
     }
@@ -82,37 +101,24 @@ class LudoGame{
 
     render(dt: number){
         this.background.render();
-        this.player.render();
+        this.player1.render();
+        this.player2.render();
+        this.player3.render();
+        this.player4.render();
         this.input.render();
         this.board.render(dt);
     }
 
     update(dt: number){
-        this.player.update(dt);
-        if(this.player.playing){
-            if(!this.player._dice.rolled){
-                //play dice highlight animation
-            }else{
-                let flag = false;
-                //get available moves and highlight
-                if(this.player.stage == TurnStage.FindingMoves){
-                    for(let piece of this.player.pieces){
-                        if(piece.validMove(this.player._dice.rnumber+1)){
-                            piece.canMove = true;
-                            flag = true;
-                            this.board.highlighted.push(piece.cellId);
-                        }
-                    }
-                    this.player.stage = TurnStage.Moving;
-                }
-
-                if(!flag){
-                    this.player._dice.rolled = false;
-                    this.player.stage = TurnStage.FindingMoves;
-                    console.log("reseting turn")
-                }
-            }
+        if(!this.player1.playing && !this.player2.playing && !this.player3.playing && !this.player4.playing){
+            this.currPlayer = this.currPlayer.nextPlayer;
+            this.currPlayer.playing = true;
         }
+
+        this.player1.update(dt);
+        this.player2.update(dt);
+        this.player3.update(dt);
+        this.player4.update(dt);
     }
 
 }
