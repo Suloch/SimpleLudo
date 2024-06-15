@@ -88,7 +88,7 @@ class LudoGame{
     }
 
     update(dt: number){
-
+        this.player.update(dt);
         if(this.player.playing){
             if(!this.player._dice.rolled){
                 //play dice highlight animation

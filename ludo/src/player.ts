@@ -3,6 +3,10 @@ import { redPath } from "./paths";
 import { Input } from "./input";
 import { Board } from "./board";
 
+function lerp(start: number, end:number, speed: number): number{
+    return start + (end - start) * speed;
+}
+
 class Dice{
     ctx: CanvasRenderingContext2D;
     sprites: Array<HTMLImageElement>;
@@ -45,7 +49,8 @@ class Dice{
 class Piece{
     ctx: CanvasRenderingContext2D;
     color : string
-    transform: Transform
+    transform: Transform;
+    targetTransform: Transform;
     cellId = -1;
     jailed = true;
     id = -1
@@ -54,10 +59,12 @@ class Piece{
     move : Function;
     onPieceClick : Function | null
     pathLength: number;
+    speed = 0.05;
 
     constructor(ctx: CanvasRenderingContext2D, color: string, input: Input, id: number, move: Function){
         this.ctx = ctx;
         this.transform = new Transform(200, 200, 1, 25, 25);
+        this.targetTransform = new Transform(200, 200, 1, 25, 25);
         this.color = color;
         this.id = id;
         this.move = move;
@@ -87,7 +94,10 @@ class Piece{
         return false;
     }
 
-    
+    update(dt: number){
+        this.transform.x = lerp(this.transform.x, this.targetTransform.x, this.speed);
+        this.transform.y = lerp(this.transform.y, this.targetTransform.y, this.speed);
+    }
 }
 enum TurnStage {
     FindingMoves,
@@ -165,7 +175,9 @@ class Player{
     }
     
     update(dt: number){
-        
+       for(let piece of this.pieces){
+            piece.update(dt);
+       } 
     }
 }
 

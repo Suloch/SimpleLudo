@@ -35,8 +35,8 @@ class Cell{
 
     putPiece(p: Piece){
         this.pieces.push(p);
-        p.transform.x = this.transform.x;
-        p.transform.y = this.transform.y;
+        p.targetTransform.x = this.transform.x;
+        p.targetTransform.y = this.transform.y;
     }
 
     isempty(){
@@ -112,10 +112,15 @@ class Board{
             piece.pos = 0;
             piece.jailed = false;
         }else{
-            piece.pos += steps;
+            piece.pos ++;
+            steps--;
         }
         piece.cellId = redPath[piece.pos];
         this.path.get(piece.cellId)?.putPiece(piece);
+
+        if(steps != 0 && steps != 6){
+            setTimeout(() => {this.move(piece, steps)}, 1000);
+        }
     }
 
     jail(piece: Piece, color: string){
