@@ -61,6 +61,8 @@ class Piece{
     path: Array<number>;
     speed = 0.05;
 
+    player: Player;
+
     constructor(ctx: CanvasRenderingContext2D, color: string, input: Input, id: number, move: Function){
         this.ctx = ctx;
         this.transform = new Transform(200, 200, 1, 25, 25);
@@ -159,7 +161,10 @@ class Player{
         for(let i=0; i<4; i++){
             this.pieces.push(new Piece(this.ctx, this.color, input, start+i, this.move));
         }
-
+        
+        for(let piece of this.pieces){
+            piece.player = this;
+        }
 
         this.playing = false;
         this.board = board;
@@ -172,7 +177,7 @@ class Player{
             piece.canMove = false;
             this.board.highlighted = []
         }
-        this.stage = TurnStage.Ending;
+
     }
 
     render(){

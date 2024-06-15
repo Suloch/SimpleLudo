@@ -1,6 +1,6 @@
 import { Transform } from "./transform"
 import { redPath } from "./paths";
-import { Piece } from "./player";
+import { Piece, TurnStage } from "./player";
 import { highlightAnimation } from "./animator";
 
 class Cell{
@@ -131,6 +131,7 @@ class Board{
         if(piece.jailed && steps == 6){
             piece.pos = 0;
             piece.jailed = false;
+            steps = 0;
         }else{
             piece.pos ++;
             steps--;
@@ -140,6 +141,7 @@ class Board{
 
         if(steps == 0){
             console.log(this.path.get(piece.cellId)?.pieces);
+            setTimeout(() => piece.player.stage = TurnStage.Ending, 1000);
         }
 
         if(steps != 0 && steps != 6){
