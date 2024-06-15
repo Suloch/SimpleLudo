@@ -1,7 +1,7 @@
 import './style.css'
 import { Transform } from './transform';
 import { Input } from './input';
-import { Piece, Player } from './player';
+import { Piece, Player, TurnStage } from './player';
 import { Board } from './board';
 
 class Background{
@@ -53,9 +53,9 @@ class LudoGame{
         
         this.input = new Input(this.canvas, this.ctx);
 
-        this.player = new Player(this.ctx, this.canvas.height, this.canvas.width, false, true, this.input);
-
         this.board = new Board(this.ctx, this.canvas.height, this.canvas.width);
+
+        this.player = new Player(this.ctx, this.canvas.height, this.canvas.width, false, true, this.input, this.board);
 
         for(let i=0; i<4; i++){
             this.board.jail(this.player.pieces[i], this.player.color);
@@ -93,10 +93,23 @@ class LudoGame{
             if(!this.player._dice.rolled){
                 //play dice highlight animation
             }else{
-                let number = this.player._dice.rnumber;
+                let flag = false;
                 //get available moves and highlight
-                if(this.player._dice.rnumber == 6){
-                    
+                if(this.player.stage == TurnStage.FindingMoves){
+                    for(let piece of this.player.pieces){
+                        if(piece.validMove(this.player._dice.rnumber+1)){
+                            piece.canMove = true;
+                            flag = true;
+                            this.board.highlighted.push(piece.cellId);
+                        }
+                    }
+                    this.player.stage = TurnStage.Moving;
+                }
+
+                if(!flag){
+                    this.player._dice.rolled = false;
+                    this.player.stage = TurnStage.FindingMoves;
+                    console.log("reseting turn")
                 }
             }
         }

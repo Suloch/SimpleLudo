@@ -8,7 +8,7 @@ class HighlightAnimation{
     
     minWidth = 30;
     maxWidth = 50;
-    speed = 0.03;
+    speed = 0.01;
     size = 40;
 
     constructor(){

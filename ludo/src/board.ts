@@ -1,4 +1,5 @@
 import { Transform } from "./transform"
+import { redPath } from "./paths";
 import { Piece } from "./player";
 import { highlightAnimation } from "./animator";
 
@@ -27,6 +28,9 @@ class Cell{
 
     render (dt: number){
         highlightAnimation.render(this.ctx, dt, this.transform);
+        // this.ctx.font ="30px Verdana"
+        // this.ctx.fillStyle = "black"
+        // this.ctx.fillText(id.toString(), this.transform.x, this.transform.y+this.transform.h/2);
     }
 
     putPiece(p: Piece){
@@ -41,6 +45,7 @@ class Cell{
 }
 
 
+
 class Board{
     redJailCells: Array<Cell> = []
     redHomeCell: Cell
@@ -51,7 +56,7 @@ class Board{
 
     redJail: Map<number, Cell> = new Map();
 
-    highlighted: Array<Cell> = []
+    highlighted: Array<number> = []
 
     constructor(ctx: CanvasRenderingContext2D, h: number, w: number){
         this.ctx = ctx;
@@ -94,30 +99,38 @@ class Board{
 
         }
 
-        this.redJail.set(100, new Cell(ctx, 0.765*w, 0.125*h));
-        this.redJail.set(101, new Cell(ctx, 0.765*w, 0.25*h));
-        this.redJail.set(102, new Cell(ctx, 0.70*w, 0.19*h));
-        this.redJail.set(103, new Cell(ctx, 0.83*w, 0.19*h));
+        this.path.set(100, new Cell(ctx, 0.765*w, 0.125*h));
+        this.path.set(101, new Cell(ctx, 0.765*w, 0.25*h));
+        this.path.set(102, new Cell(ctx, 0.70*w, 0.19*h));
+        this.path.set(103, new Cell(ctx, 0.83*w, 0.19*h));
 
-        this.highlighted.push(this.redJail.get(100));
         
     }
 
     move(piece: Piece, steps: number){
-        
+        if(piece.jailed && steps == 6){
+            piece.pos = 0;
+            piece.jailed = false;
+        }else{
+            piece.pos += steps;
+        }
+        piece.cellId = redPath[piece.pos];
+        this.path.get(piece.cellId)?.putPiece(piece);
     }
 
     jail(piece: Piece, color: string){
         let start = 100;
-        let jail = this.redJail;
+        
 
         switch(color){
-            case 'blue': start = 200; jail = this.redJail;
+            case 'blue': start = 200;
         }
 
         for(let i=start; i<start+4; i++){
-            if(jail.get(i)?.isempty()){
-                jail.get(i).putPiece(piece);
+            if(this.path.get(i)?.isempty()){
+                this.path.get(i).putPiece(piece);
+                piece.cellId = i;
+                piece.jailed = true;
                 break;
             }
         }
@@ -126,14 +139,14 @@ class Board{
 
     render(dt: number){
         for(let [id, cell] of this.path){
-            // cell.render();
+            // cell.render(dt, id);
         }
 
         for(let [id, cell] of this.redJail){
             // cell.render();
         }
-        for(let cell of this.highlighted){
-            cell.render(dt);
+        for(let cellId of this.highlighted){
+            this.path.get(cellId).render(dt);
         }
     }
 }

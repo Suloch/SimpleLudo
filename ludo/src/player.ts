@@ -1,5 +1,7 @@
 import { Transform } from "./transform";
+import { redPath } from "./paths";
 import { Input } from "./input";
+import { Board } from "./board";
 
 class Dice{
     ctx: CanvasRenderingContext2D;
@@ -21,8 +23,12 @@ class Dice{
         this.transform = new Transform(x, y, 1, 50, 50);
 
         this.onclick = () => {
-            this.rnumber = Math.floor(Math.random() * 6);
-            console.log('Dice Clicked!');
+            if(!this.rolled){
+                this.rnumber = Math.floor(Math.random() * 6);
+                this.rolled = true;
+            }
+            else
+                console.log('Already rolled!');
         }
 
         input.addClickable(this.transform, this.onclick);
@@ -42,18 +48,52 @@ class Piece{
     transform: Transform
     cellId = -1;
     jailed = true;
-    
-    constructor(ctx: CanvasRenderingContext2D, color: string){
+    id = -1
+    canMove = false;
+    pos: number = -1;
+    move : Function;
+    onPieceClick : Function | null
+    pathLength: number;
+
+    constructor(ctx: CanvasRenderingContext2D, color: string, input: Input, id: number, move: Function){
         this.ctx = ctx;
         this.transform = new Transform(200, 200, 1, 25, 25);
         this.color = color;
+        this.id = id;
+        this.move = move;
+        this.onPieceClick = () => {
+            if(this.canMove){
+                this.move(this);
+            }
+        }
+
+        switch(color){
+            case "red": this.pathLength = redPath.length;
+        }
+        input.addClickable(this.transform, this.onPieceClick);
     }
 
     render(){
         this.ctx.fillStyle = this.color;
         this.ctx.fillRect(this.transform.x, this.transform.y, this.transform.w, this.transform.h);
     }
+
+    validMove(n: number): boolean{
+        if(this.jailed && n == 6){
+            return true;
+        }
+        if(!this.jailed && this.pos + n < this.pathLength)
+            return true;
+        return false;
+    }
+
+    
 }
+enum TurnStage {
+    FindingMoves,
+    Moving,
+    Ending
+};
 
 class Player{
     
@@ -69,7 +109,17 @@ class Player{
 
     color: string = "red";
 
-    constructor(ctx: CanvasRenderingContext2D, height: number, width: number, flipped: boolean, top: boolean, input: Input){
+    canMove = false;
+
+    selectedPiece = -1;
+
+    stage = TurnStage.FindingMoves
+
+
+    
+    board: Board
+
+    constructor(ctx: CanvasRenderingContext2D, height: number, width: number, flipped: boolean, top: boolean, input: Input, board: Board){
         this.ctx = ctx;
         this.transform = new Transform(10, 10, 1, 0.25 * width, 0.1 * height);
 
@@ -82,11 +132,23 @@ class Player{
         }
         this._dice = new Dice(this.ctx, this.transform.x, this.transform.y, input);
 
-        for(let i=0; i<4; i++)
-            this.pieces.push(new Piece(this.ctx, this.color));
+
+        for(let i=0; i<4; i++){
+            this.pieces.push(new Piece(this.ctx, this.color, input, i, this.move));
+        }
+
 
         this.playing = true;
+        this.board = board;
         
+    }
+    
+    move = (piece: Piece) => {
+        this.board.move(piece, this._dice.rnumber+1);
+        for(let piece of this.pieces){
+            piece.canMove = false;
+            this.board.highlighted = []
+        }
     }
 
     render(){
@@ -100,11 +162,11 @@ class Player{
         for(let piece of this.pieces){
             piece.render();
         }
-        }
+    }
+    
+    update(dt: number){
         
-        update(dt: number){
-            
-        }
+    }
 }
 
-export {Player, Piece};
+export {Player, Piece, TurnStage};
