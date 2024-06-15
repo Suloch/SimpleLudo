@@ -46,6 +46,8 @@ class Dice{
          
 }
 
+const pieces = new Map<number, Piece>();
+
 class Piece{
     ctx: CanvasRenderingContext2D;
     color : string
@@ -83,6 +85,7 @@ class Piece{
             case "green": this.path = greenPath; break;
         }
         input.addClickable(this.transform, this.onPieceClick);
+        pieces.set(id, this);
     }
 
     render(){
@@ -228,4 +231,5 @@ class Player{
     }
 }
 
-export {Player, Piece, TurnStage};
+
+export {Player, Piece, TurnStage, pieces};

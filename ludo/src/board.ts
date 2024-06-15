@@ -1,6 +1,5 @@
 import { Transform } from "./transform"
-import { redPath } from "./paths";
-import { Piece, TurnStage } from "./player";
+import { Piece, TurnStage, pieces } from "./player";
 import { highlightAnimation } from "./animator";
 
 class Cell{
@@ -8,7 +7,7 @@ class Cell{
     transform: Transform
     home: boolean
     star: boolean
-    pieces: Array<Number> = [];
+    pieces: Array<number> = [];
     blueTurn: boolean
     redTurn: boolean
     greenTurn: boolean
@@ -141,6 +140,14 @@ class Board{
 
         if(steps == 0){
             console.log(this.path.get(piece.cellId)?.pieces);
+            let cell = this.path.get(piece.cellId)
+            if(cell?.pieces.length > 1){
+               for(let id of cell?.pieces){
+                    if(pieces.get(id)?.color != piece.color){
+                        this.jail(pieces.get(id), pieces.get(id).color);
+                    }
+               }
+            }
             setTimeout(() => piece.player.stage = TurnStage.Ending, 1000);
         }
 
