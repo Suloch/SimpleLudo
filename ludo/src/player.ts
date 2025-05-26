@@ -62,6 +62,7 @@ class Piece{
     onPieceClick : Function | null
     path: Array<number>;
     speed = 0.05;
+    isHome: boolean = false;
 
     player: Player;
 
@@ -98,6 +99,9 @@ class Piece{
     }
 
     validMove(n: number): boolean{
+        if (this.isHome) {
+            return false;
+        }
         if(this.jailed && n == 6){
             return true;
         }
@@ -138,6 +142,7 @@ class Player{
     stage = TurnStage.FindingMoves
     
     nextPlayer : Player;
+    hasWon: boolean = false; // Added hasWon property
 
     
     board: Board
@@ -222,12 +227,28 @@ class Player{
                     }
                 }
                 if(this.stage == TurnStage.Ending){
+                    if (this.checkWinCondition()) {
+                        console.log(`${this.color} wins!`);
+                        this.hasWon = true;
+                        // Game over logic will be handled by LudoGame.update()
+                        // Player specific turn end logic still runs:
+                    }
                     this._dice.rolled = false;
                     this.stage = TurnStage.FindingMoves;
                     this.playing = false;
                 }
             }
         }
+    }
+
+    checkWinCondition(): boolean {
+        let homePiecesCount = 0;
+        for (const piece of this.pieces) {
+            if (piece.isHome) {
+                homePiecesCount++;
+            }
+        }
+        return homePiecesCount === 4;
     }
 }
 

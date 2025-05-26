@@ -36,6 +36,8 @@ class LudoGame{
     
     currPlayer: Player;
     board: Board;
+    gameOver: boolean = false;
+    winner: Player | null = null;
 
     constructor(){
         this.windowWidth = 0.9 * Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
@@ -107,18 +109,42 @@ class LudoGame{
         this.player4.render();
         this.input.render();
         this.board.render(dt);
+
+        if (this.gameOver && this.winner) {
+            this.ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent black overlay
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+            this.ctx.fillStyle = "white"; // Text color
+            this.ctx.font = "40px Arial";
+            this.ctx.textAlign = "center";
+            this.ctx.fillText(`${this.winner.color} has won!`, this.canvas.width / 2, this.canvas.height / 2);
+        }
     }
 
     update(dt: number){
-        if(!this.player1.playing && !this.player2.playing && !this.player3.playing && !this.player4.playing){
-            this.currPlayer = this.currPlayer.nextPlayer;
-            this.currPlayer.playing = true;
+        if (this.gameOver) {
+            return;
         }
 
         this.player1.update(dt);
         this.player2.update(dt);
         this.player3.update(dt);
         this.player4.update(dt);
+
+        for (const player of [this.player1, this.player2, this.player3, this.player4]) {
+            if (player.hasWon) {
+                this.gameOver = true;
+                this.winner = player;
+                break;
+            }
+        }
+
+        if (!this.gameOver) {
+            if(!this.player1.playing && !this.player2.playing && !this.player3.playing && !this.player4.playing){
+                this.currPlayer = this.currPlayer.nextPlayer;
+                this.currPlayer.playing = true;
+            }
+        }
     }
 
 }

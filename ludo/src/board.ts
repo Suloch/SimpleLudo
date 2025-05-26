@@ -139,12 +139,22 @@ class Board{
         this.path.get(piece.cellId)?.putPiece(piece);
 
         if(steps == 0){
+            // Check if the piece has reached its final destination
+            if (piece.pos === piece.path.length - 1) {
+                piece.isHome = true;
+                // Future: Add logic to prevent interaction if isHome is true
+                // For now, isHome being true should prevent it from being selected by Player.update
+            }
+
             console.log(this.path.get(piece.cellId)?.pieces);
             let cell = this.path.get(piece.cellId)
             if(cell?.pieces.length > 1){
                for(let id of cell?.pieces){
-                    if(pieces.get(id)?.color != piece.color){
-                        this.jail(pieces.get(id), pieces.get(id).color);
+                    const otherPiece = pieces.get(id);
+                    // A piece that is already home should not kick out other pieces, nor be kicked out.
+                    // A piece that is not home can kick out other non-home pieces.
+                    if (otherPiece && !otherPiece.isHome && otherPiece.color != piece.color && !piece.isHome) {
+                        this.jail(otherPiece, otherPiece.color);
                     }
                }
             }
@@ -172,6 +182,7 @@ class Board{
                 this.path.get(i).putPiece(piece);
                 piece.cellId = i;
                 piece.jailed = true;
+                piece.isHome = false; // If a piece is jailed, it's no longer home
                 break;
             }
         }
