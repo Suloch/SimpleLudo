@@ -1,5 +1,5 @@
 import { loadAssets, assetReader } from "./assets";
-import { Player, BoardBackground } from "./board";
+import { Player, BoardBackground, GameManager } from "./board";
 import type { GameObject, } from "./gameobject";
 import { dispatchEvent, addEvent } from "./events";
 
@@ -76,7 +76,7 @@ const main = async () => {
     ])
 
     await loadAssets(assetsURL);
-    const {canvas, context} = initCanvas();
+    const {context} = initCanvas();
     
     const gameObjects = []
     
@@ -94,19 +94,25 @@ const main = async () => {
         "Red Player",
         "RED"
     )
-    
+    redPlayer.setId("red-player-1");
     redPlayer.playing = true;
 
     gameObjects.push(redPlayer)
 
-    gameObjects.push(new Player(
+    const greenPlayer = new Player(
         context,
         "Green Player",
         "GREEN"
-    ))
+    )
+    greenPlayer.setId("green-player-1");
+
+    gameObjects.push(greenPlayer)
     
 
     startRenderingLoop(gameObjects);
+
+    const gameManager = new GameManager([redPlayer, greenPlayer]);
+    gameManager.startGame();
 
     
 }
