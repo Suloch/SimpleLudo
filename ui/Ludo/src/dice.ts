@@ -17,6 +17,7 @@ class Dice implements GameObject{
     rolling: boolean = false;
     rollTotalTime: number = 2000; //ms  for rolling animation
     rollCurrTime: number = 0;
+    enabled: boolean = false;
 
     constructor(
         context: CanvasRenderingContext2D,
@@ -41,6 +42,7 @@ class Dice implements GameObject{
         
         
         addEvent("DICE_CLICKED"+this.name);
+        addEvent("DICE_ROLL_FINISHED"+this.name);
         addEventListener("CANVAS_CLICKED", "dice_event"+name, (data: any) =>{
             if(this.checkDiceBounds(data.x, data.y))
                dispatchEvent("DICE_CLICKED"+this.name, {});
@@ -54,9 +56,11 @@ class Dice implements GameObject{
     }
     
     onDiceClick(){
+        if(!this.enabled) return;
         console.log("dice was clicked: "+this.name);
         this.rolling = true;
         this.rollCurrTime = 0;
+        this.enabled = false;
     }
 
     checkDiceBounds(x: number, y: number){
@@ -76,8 +80,10 @@ class Dice implements GameObject{
         if(this.rolling){
             this.val = diceValues[Math.floor(Math.random()*6)]
             this.rollCurrTime = this.rollCurrTime + dt;
-            if(this.rollCurrTime > this.rollTotalTime)
+            if(this.rollCurrTime > this.rollTotalTime){
                 this.rolling = false;
+                dispatchEvent("DICE_ROLL_FINISHED"+this.name, {val: this.val});
+            }
         }
 
         this.context.drawImage(
