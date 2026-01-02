@@ -1,10 +1,15 @@
 
 import type { GameState, PlayerModel, PieceModel, Color } from "./model";
+import type { DiceService, PieceFactory } from "./services";
 
 export class GameManager {
     state: GameState;
+    diceService: DiceService;
+    pieceFactory: PieceFactory;
 
-    constructor() {
+    constructor(diceService: DiceService, pieceFactory: PieceFactory) {
+        this.diceService = diceService;
+        this.pieceFactory = pieceFactory;
         this.state = {
             players: [],
             playerMap: new Map(),
@@ -16,15 +21,7 @@ export class GameManager {
     }
 
     addPlayer(id: string, name: string, color: Color) {
-        const pieces: PieceModel[] = [];
-        for (let i = 0; i < 4; i++) {
-            pieces.push({
-                id: `${id}-piece-${i+1}`,
-                color: color,
-                pathPosition: i - 4, // -4, -3, -2, -1
-                homeIndex: i - 4
-            });
-        }
+        const pieces = this.pieceFactory.createPieces(id, color);
 
         const player: PlayerModel = {
             id,
@@ -66,7 +63,7 @@ export class GameManager {
         this.startTurn();
     }
 
-    handleDiceClick(playerId: string) {
+    async handleDiceClick(playerId: string) {
         const player = this.state.playerMap.get(playerId);
         if (!player) return;
 
@@ -79,13 +76,13 @@ export class GameManager {
         player.dice.isRolling = true;
         player.dice.rollStartTime = Date.now();
 
-        // Finish Roll after 1 second (simulated animation time)
-        setTimeout(() => {
-            const val = Math.floor(Math.random() * 6) + 1;
-            player.dice.isRolling = false;
-            player.dice.value = val;
-            this.handleDiceRollFinished(val);
-        }, 1000);
+        // Use Injected Dice Service
+        const val = await this.diceService.roll();
+
+        // Update State
+        player.dice.isRolling = false;
+        player.dice.value = val;
+        this.handleDiceRollFinished(val);
     }
 
     handleDiceRollFinished(val: number) {
@@ -150,31 +147,7 @@ export class GameManager {
     }
 
     checkCaptures(_movedPiece: PieceModel, _currentPlayer: PlayerModel) {
-        // Since we don't have (x,y) collisions easily without the View's path map,
-        // we can check if they are on the same "Path Index".
-        // BUT, Red Path Index 5 != Green Path Index 5.
-        // We need a way to map "Color + PathIndex" to "Global Board Tile".
-        // This was the complexity I avoided earlier by using visual collision.
-        // If I strictly separate Model, I need this mapping.
-
-        // However, the previous visual implementation used `dist < 10`.
-        // If I want to keep that logic, I need to ask the *Renderer* (or a shared Helper)
-        // "Are these pieces colliding?".
-        // OR, I can be smart.
-        // Red Path 0 = {1, 6}. Green Path...
-        // Refactoring full coordinates map into Logic is safer.
-
-        // For this demo "How to do point 4", I will assume we can just check if they land on the same visual spot.
-        // Since I don't want to import the massive Path arrays here, I will cheat slightly:
-        // I won't implement capture logic in this Pure Model version unless I port the Path Logic to the Model side.
-        // Wait, the Path Logic (Arrays of coordinates) IS Data. It belongs in Model/Data layer, not View.
-        // The Renderer USES it to draw. The Logic USES it to check collisions.
-
-        // So, `red.ts` and `green.ts` should be considered "Static Data" available to both.
-        // I'll skip implementing complex capture logic for this specific step to keep it simple,
-        // or I can import the paths here too.
-
-        // Let's import the paths. They are just functions returning data.
+        // Capture logic placeholder (requires path mapping)
     }
 
     // ... helper functions

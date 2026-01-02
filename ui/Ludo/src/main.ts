@@ -1,6 +1,7 @@
 import { loadAssets } from "./assets";
 import { GameManager } from "./board";
 import { Renderer } from "./renderer";
+import { RandomDiceService, StandardPieceFactory } from "./services";
 
 const fps = 60;
 
@@ -50,8 +51,11 @@ const main = async () => {
     await loadAssets(assetsURL);
     const {canvas, context} = initCanvas();
     
-    // 1. Init Logic
-    const gameManager = new GameManager();
+    // 1. Init Logic & Dependencies
+    const diceService = new RandomDiceService();
+    const pieceFactory = new StandardPieceFactory();
+    const gameManager = new GameManager(diceService, pieceFactory);
+
     gameManager.addPlayer("red-1", "Red Player", "RED");
     gameManager.addPlayer("green-1", "Green Player", "GREEN");
     
