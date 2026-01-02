@@ -1,4 +1,4 @@
-import type {Vector2} from "./gameobject"
+import type {Vector2} from "./model"
 
 type Path = {
     homePositions: Array<Vector2>;

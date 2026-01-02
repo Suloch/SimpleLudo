@@ -1,13 +1,10 @@
-import { loadAssets, assetReader } from "./assets";
-import { Player, BoardBackground, GameManager } from "./board";
-import type { GameObject, } from "./gameobject";
-import { dispatchEvent, addEvent } from "./events";
+import { loadAssets } from "./assets";
+import { GameManager } from "./board";
+import { Renderer } from "./renderer";
 
 const fps = 60;
 
-
 function initCanvas(){
-
     const canvas = document.getElementById('ludoCanvas') as HTMLCanvasElement;
     const context = canvas.getContext('2d') as CanvasRenderingContext2D;
 
@@ -16,44 +13,21 @@ function initCanvas(){
     canvas.style.top = '50%';
     canvas.style.transform = 'translate(-50%, -50%)';
 
-
     context.fillStyle = 'lightblue';
     context.fillRect(0, 0, canvas.width, canvas.height);
     
-    addEvent("CANVAS_CLICKED");
-
-    canvas.addEventListener('click', (event) => {
-        const pos = getClickPosition(event, canvas);
-        dispatchEvent('CANVAS_CLICKED', {x:pos.x, y:pos.y});
-        console.log(`Clicked at x: ${pos.x}, y: ${pos.y}`);
-    });
     return {canvas, context};
 }
 
-
-
-
-
-
-function startRenderingLoop(gameObjects: Array<GameObject>){
+function startRenderingLoop(renderer: Renderer, gameManager: GameManager){
     let lastTimestamp = 0;
-    let start = 0;
-    let dt = 0;
     
     function renderFrame(timestamp: number){
         requestAnimationFrame(renderFrame);
-        if(start === 0){
-            start = timestamp;
-        }
-
-        dt = timestamp - lastTimestamp
-
+        const dt = timestamp - lastTimestamp;
 
         if(dt >= 1000 / fps){
-            
-            for(let gameObject of gameObjects){
-                gameObject.render(dt);
-            }
+            renderer.render(gameManager.state, dt);
             lastTimestamp = timestamp;
         }
     }
@@ -67,56 +41,48 @@ const getClickPosition = (event: MouseEvent, canvas: HTMLCanvasElement) => {
     return {x, y};
 }
 
-
 const main = async () => {
     const assetsURL : Map<string, string> = new Map<string, string>([
         ["board", "ludo.jpg"],
-        ["piece", "redpiece.png"],
         ["dice", "dice.png"]
     ])
 
     await loadAssets(assetsURL);
-    const {context} = initCanvas();
+    const {canvas, context} = initCanvas();
     
-    const gameObjects = []
+    // 1. Init Logic
+    const gameManager = new GameManager();
+    gameManager.addPlayer("red-1", "Red Player", "RED");
+    gameManager.addPlayer("green-1", "Green Player", "GREEN");
     
-    gameObjects.push(
-        new BoardBackground(
-            context,
-            "Background",
-            {x: 0, y: 0},
-            assetReader("board")
-        )
-    )
+    // 2. Init View
+    const renderer = new Renderer(context);
 
-    const redPlayer = new Player(
-        context,
-        "Red Player",
-        "RED"
-    )
-    redPlayer.setId("red-player-1");
-    redPlayer.playing = true;
+    // 3. Input Handling (Controller)
+    canvas.addEventListener('click', (event) => {
+        const pos = getClickPosition(event, canvas);
+        console.log(`Clicked at x: ${pos.x}, y: ${pos.y}`);
 
-    gameObjects.push(redPlayer)
+        // Check for Piece Click
+        const clickedPiece = renderer.getPieceAtPosition(gameManager.state, pos.x, pos.y);
+        if (clickedPiece) {
+            console.log("Piece clicked:", clickedPiece.id);
+            gameManager.handlePieceClick(clickedPiece);
+            return;
+        }
 
-    const greenPlayer = new Player(
-        context,
-        "Green Player",
-        "GREEN"
-    )
-    greenPlayer.setId("green-player-1");
+        // Check for Dice Click
+        const clickedPlayer = renderer.getDiceAtPosition(gameManager.state, pos.x, pos.y);
+        if (clickedPlayer) {
+            console.log("Dice clicked for:", clickedPlayer.name);
+            gameManager.handleDiceClick(clickedPlayer.id);
+            return;
+        }
+    });
 
-    gameObjects.push(greenPlayer)
-    
-
-    startRenderingLoop(gameObjects);
-
-    const gameManager = new GameManager([redPlayer, greenPlayer]);
+    // Start Game
     gameManager.startGame();
-
-    
+    startRenderingLoop(renderer, gameManager);
 }
-    
 
-
-main()
+main();
