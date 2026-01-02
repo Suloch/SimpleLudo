@@ -2,6 +2,7 @@ import { loadAssets } from "./assets";
 import { GameManager } from "./board";
 import { Renderer } from "./renderer";
 import { RandomDiceService, StandardPieceFactory } from "./services";
+import { BoardMapper } from "./boardMapper";
 
 const fps = 60;
 
@@ -51,18 +52,20 @@ const main = async () => {
     await loadAssets(assetsURL);
     const {canvas, context} = initCanvas();
     
-    // 1. Init Logic & Dependencies
+    // 1. Init Dependencies
+    const boardMapper = new BoardMapper(canvas.width, canvas.height);
     const diceService = new RandomDiceService();
     const pieceFactory = new StandardPieceFactory();
-    const gameManager = new GameManager(diceService, pieceFactory);
 
+    // 2. Init Logic
+    const gameManager = new GameManager(diceService, pieceFactory, boardMapper);
     gameManager.addPlayer("red-1", "Red Player", "RED");
     gameManager.addPlayer("green-1", "Green Player", "GREEN");
     
-    // 2. Init View
-    const renderer = new Renderer(context);
+    // 3. Init View
+    const renderer = new Renderer(context, boardMapper);
 
-    // 3. Input Handling (Controller)
+    // 4. Input Handling (Controller)
     canvas.addEventListener('click', (event) => {
         const pos = getClickPosition(event, canvas);
         console.log(`Clicked at x: ${pos.x}, y: ${pos.y}`);

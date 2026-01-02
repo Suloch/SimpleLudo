@@ -1,27 +1,21 @@
 
 import type { GameState, PieceModel, PlayerModel, Color, Vector2, DiceModel } from "./model";
-import { getRedPath, type Path } from "./red";
-import { getGreenPath } from "./green";
 import { assetReader } from "./assets";
+import { BoardMapper } from "./boardMapper";
 
 export class Renderer {
     context: CanvasRenderingContext2D;
-    redPath: Path;
-    greenPath: Path;
+    boardMapper: BoardMapper;
     backgroundImage: HTMLImageElement;
     diceImage: HTMLImageElement;
     diceMap: Map<number, Vector2>;
 
     // View specific state: Dice positions
-    // We need to know where to draw the dice for each player.
-    // In the old code, it was hardcoded in Player constructor:
-    // Red: {x: 50, y: 0}, Green: {x: width - 100, y: 0}
     dicePositions: Map<Color, Vector2> = new Map();
 
-    constructor(context: CanvasRenderingContext2D) {
+    constructor(context: CanvasRenderingContext2D, boardMapper: BoardMapper) {
         this.context = context;
-        this.redPath = getRedPath(context.canvas.height, context.canvas.width);
-        this.greenPath = getGreenPath(context.canvas.height, context.canvas.width);
+        this.boardMapper = boardMapper;
         this.backgroundImage = assetReader("board");
         this.diceImage = assetReader("dice");
 
@@ -64,7 +58,7 @@ export class Renderer {
     }
 
     drawPiece(piece: PieceModel, color: Color) {
-        const pos = this.getPieceVisualPosition(piece, color);
+        const pos = this.boardMapper.getCoordinate(color, piece.pathPosition);
         if (!pos) return;
 
         this.context.beginPath();
@@ -82,12 +76,6 @@ export class Renderer {
 
         let valToDraw = dice.value;
         if (dice.isRolling) {
-            // Animation logic: Change value every 100ms or so
-            // Or just random every frame?
-            // The model has `rollStartTime`.
-            // We can use it to determine if we should stop rolling or what frame to show.
-            // But usually logic handles "when to stop". View just animates.
-            // If isRolling is true, we show random.
             valToDraw = Math.floor(Math.random() * 6) + 1;
         }
 
@@ -114,37 +102,11 @@ export class Renderer {
         }
     }
 
-    getPieceVisualPosition(piece: PieceModel, color: Color): Vector2 | null {
-        let path: Path;
-        if (color === "RED") path = this.redPath;
-        else if (color === "GREEN") path = this.greenPath;
-        else return null; // Others not implemented
-
-        if (piece.pathPosition < 0) {
-            // Home position
-            // piece.homeIndex should be -1, -2, -3, -4
-            // path.homePositions is 0-indexed (0,1,2,3)
-            // So index = 4 + piece.pathPosition
-            // Wait, piece.pathPosition IS piece.homeIndex when in home.
-            // In my previous code: position = path.homePositions[4+pathPosition]
-            const idx = 4 + piece.pathPosition;
-            if (idx >= 0 && idx < path.homePositions.length) {
-                return path.homePositions[idx];
-            }
-        } else {
-            // Path position
-            if (piece.pathPosition < path.path.length) {
-                return path.path[piece.pathPosition];
-            }
-        }
-        return {x: 0, y: 0};
-    }
-
     // Helper for Input Handling
     getPieceAtPosition(gameState: GameState, x: number, y: number): PieceModel | null {
         for (const player of gameState.players) {
             for (const piece of player.pieces) {
-                const pos = this.getPieceVisualPosition(piece, player.color);
+                const pos = this.boardMapper.getCoordinate(player.color, piece.pathPosition);
                 if (!pos) continue;
                 const dist = Math.sqrt(Math.pow(x - pos.x, 2) + Math.pow(y - pos.y, 2));
                 if (dist <= 20) { // Radius

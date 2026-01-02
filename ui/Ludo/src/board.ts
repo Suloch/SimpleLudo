@@ -1,15 +1,18 @@
 
 import type { GameState, PlayerModel, PieceModel, Color } from "./model";
 import type { DiceService, PieceFactory } from "./services";
+import type { BoardMapper } from "./boardMapper";
 
 export class GameManager {
     state: GameState;
     diceService: DiceService;
     pieceFactory: PieceFactory;
+    boardMapper?: BoardMapper; // Optional for now, or injected
 
-    constructor(diceService: DiceService, pieceFactory: PieceFactory) {
+    constructor(diceService: DiceService, pieceFactory: PieceFactory, boardMapper?: BoardMapper) {
         this.diceService = diceService;
         this.pieceFactory = pieceFactory;
+        this.boardMapper = boardMapper;
         this.state = {
             players: [],
             playerMap: new Map(),
@@ -146,8 +149,30 @@ export class GameManager {
         this.checkCaptures(piece, currentPlayer);
     }
 
-    checkCaptures(_movedPiece: PieceModel, _currentPlayer: PlayerModel) {
-        // Capture logic placeholder (requires path mapping)
+    checkCaptures(movedPiece: PieceModel, currentPlayer: PlayerModel) {
+        if (!this.boardMapper) return;
+
+        // Get Global Index of moved piece
+        const movedGlobalIndex = this.boardMapper.getGlobalTileIndex(movedPiece.color, movedPiece.pathPosition);
+
+        // If it's null, piece is in home run or home base, safe from capture (usually)
+        if (movedGlobalIndex === null) return;
+
+        // Check collision with other pieces
+        for (const otherPlayer of this.state.players) {
+            if (otherPlayer.id === currentPlayer.id) continue;
+
+            for (const otherPiece of otherPlayer.pieces) {
+                const otherGlobalIndex = this.boardMapper.getGlobalTileIndex(otherPlayer.color, otherPiece.pathPosition);
+
+                if (otherGlobalIndex !== null && otherGlobalIndex === movedGlobalIndex) {
+                    console.log(`Captured ${otherPiece.id}!`);
+                    // Reset to home
+                    // We need to set pathPosition back to homeIndex (-1 to -4)
+                    otherPiece.pathPosition = otherPiece.homeIndex;
+                }
+            }
+        }
     }
 
     // ... helper functions
