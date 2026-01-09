@@ -1,5 +1,5 @@
 import { GameObject, GameObjectWithTransform, type Vector2 } from "./gameobject";
-import { Clickable, SpriteRenderer, SpriteSheet } from "../renderer";
+import { BoxClickable, CircleClickable, SpriteRenderer, SpriteSheet } from "../renderer";
 import { DiscRenderer } from "../renderer";
 import type { BoardMapper } from "../boardmapper";
 
@@ -10,9 +10,10 @@ class Dice extends GameObjectWithTransform{
     value: number = 1;
     enabled: boolean = false;
      
-    constructor(parent: GameObject, position: Vector2, onclick: ()=>void){
+    constructor(parent: GameObject, position: Vector2, onclick: (p: GameObject)=>void){
         super(parent);
-        this.addProperty(new Clickable(this, onclick));
+        const boxClickable = new BoxClickable(this, {x:50, y: 50}, onclick);
+        this.addProperty(boxClickable);
         const spriteSheet: SpriteSheet = new SpriteSheet('dice');
         this.transform.position = position;
         this.transform.scale = {x: 0.1, y: 0.1};
@@ -27,10 +28,10 @@ export class Piece extends GameObjectWithTransform{
     gridPosition: number;
     enabled: boolean = false;
 
-    constructor(parent: GameObject, p: number, onclick: ()=>void, boardMapper: BoardMapper){
+    constructor(parent: GameObject, p: number, onclick: (p: GameObject)=>void, boardMapper: BoardMapper){
         super(parent);
         this.gridPosition = p;
-        this.addProperty(new Clickable(this, onclick));
+        this.addProperty(new CircleClickable(this, 20, onclick));
         const player = this.parent as Player;
         this.addProperty(new DiscRenderer(this, 10, player.color));
         this.transform.position = boardMapper.getPosition(p);
@@ -43,6 +44,16 @@ export class Player extends GameObject{
     name: string;
     state: PlayerState = "WAITING";
 
+    onDiceClick: (p: GameObject)=>void = (p: GameObject): void => {
+        console.log("Player dice clicked: "+ this.name);
+        console.log(p);
+    }
+
+    onPieceClick: (p: GameObject)=>void = (p: GameObject): void => {
+        console.log("Player piece clicked: "+ this.name);
+        console.log(p);
+    }
+
     constructor(parent: GameObject|null, name: string, color: Color, boardMapper: BoardMapper){
         super(parent);
         this.color = color;
@@ -53,11 +64,4 @@ export class Player extends GameObject{
         this.addChildren(new Dice(this, boardMapper.getDicePosition(color), this.onDiceClick));
     }
 
-    onDiceClick(){
-        console.log("Player dice clicked: "+ this.name);
-    }
-
-    onPieceClick(){
-        console.log("Player piece clicked: "+ this.name);
-    }
 }
