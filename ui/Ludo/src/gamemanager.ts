@@ -1,3 +1,4 @@
+import type { BoardMapper } from "./boardmapper";
 import { GameObject } from "./gameobject/gameobject";
 import { Player, type Color } from "./gameobject/player";
 
@@ -11,7 +12,7 @@ export class GameManger extends GameObject{
         super(null);
     }
 
-    addPlayer(name: string): boolean{
+    addPlayer(name: string, boardMapper: BoardMapper): boolean{
         //check if the color is available 
         //
         const colors: Array<Color> = ["RED", "BLUE", "GREEN", "YELLOW"];
@@ -25,7 +26,7 @@ export class GameManger extends GameObject{
         if(colorIndex > 3){
             return false;
         }
-        const player = new Player(this, name, colors[colorIndex]);
+        const player = new Player(this, name, colors[colorIndex], boardMapper);
         this.addChildren(player);
         this.playersRef.push(player);
         return true

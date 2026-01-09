@@ -3,8 +3,15 @@ type Vector2={
     x: number;
     y: number;
 }
-export const VECTOR2_0: Vector2 = {x: 0, y: 0};
-export const VECTOR2_1: Vector2 = {x: 1, y: 1};
+
+export const Constants = {
+  get VECTOR2_1(): Vector2 {
+    return { x: 1, y: 1 };
+  },
+  get VECTOR2_0(): Vector2 {
+      return {x: 0, y: 0};
+  }
+};
 
 const GLOBAL_GAME_OBJECTS = [];
 
@@ -20,9 +27,9 @@ export class Transform implements GameObjectProperty{
     id: string = crypto.randomUUID(); 
     type: PropertyType = "transform";
     parent: GameObject;
-    position: Vector2 = VECTOR2_0;
-    size: Vector2 = VECTOR2_0;
-    scale: Vector2 = VECTOR2_1;
+    position: Vector2 = Constants.VECTOR2_0;
+    size: Vector2 = Constants.VECTOR2_0;
+    scale: Vector2 = Constants.VECTOR2_1;
 
     constructor(parent: GameObject){
         this.parent = parent
@@ -65,10 +72,14 @@ export class GameObject{
 }
 
 export class GameObjectWithTransform extends GameObject{
+    transform: Transform;
     constructor(parent: GameObject|null){
         super(parent);
-        const newTransformProperty = new Transform(this);
-        this.addProperty(newTransformProperty);
+        this.transform = new Transform(this);
+        this.transform.size = Constants.VECTOR2_1;
+        this.transform.position = Constants.VECTOR2_0;
+        this.transform.scale = Constants.VECTOR2_1;
+        this.addProperty(this.transform);
 
     }
 }

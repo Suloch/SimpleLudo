@@ -1,22 +1,16 @@
 import { loadAssets } from "./assets";
-import { GameObjectWithTransform, Transform } from "./gameobject/gameobject";
-import { initRenderer, Sprite, SpriteRenderer } from "./renderer";
+import { BoardMapper } from "./boardmapper";
+import { GameManger } from "./gamemanager";
+import { GameObjectWithTransform } from "./gameobject/gameobject";
+import { initRenderer, Sprite, SpriteRenderer, SpriteSheet } from "./renderer";
 
-class BackgroundSprite extends Sprite{
-
-    constructor(){
-        super('board');
-    }
-}
 
 class BackgroundObject extends GameObjectWithTransform{
 
-    constructor(){
+    constructor(bgSprite: Sprite){
         super(null);
-        this.addProperty(new SpriteRenderer(this, new BackgroundSprite()));
-        let t = this.getProperty("transform") as Transform;
-        t.scale.x = 0.7;
-        t.scale.y = 0.7;
+        this.addProperty(new SpriteRenderer(this, bgSprite));
+        this.transform.scale = {x: 0.7, y: 0.7};
     }
 }
 
@@ -28,10 +22,17 @@ const main = async () => {
     ])
 
     await loadAssets(assetsURL);
+    const bgSprite = new Sprite('board'); 
+    new BackgroundObject(bgSprite); 
     
-   new BackgroundObject(); 
-   
-   initRenderer({x: 800, y: 650});
+    const diceSpriteSheet = new SpriteSheet('dice');
+    diceSpriteSheet.createUniformGrid({x: 2, y: 3});
+
+    const gameManager =  new GameManger();
+    const boardMapper = new BoardMapper(bgSprite.image.height, 0.7);
+    gameManager.addPlayer("sumit", boardMapper);
+
+    initRenderer({x: 800, y: 650});
     
 
     

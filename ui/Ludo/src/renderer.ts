@@ -1,7 +1,6 @@
 import type { Vector2, GameObjectProperty, GameObject, PropertyType} from "./gameobject/gameobject";
-import { Transform, VECTOR2_0, VECTOR2_1 } from "./gameobject/gameobject";
+import { Transform, Constants } from "./gameobject/gameobject";
 import { assetReader } from "./assets";
-import type { Transform } from "./gameobject";
 
 const GLOBAL_RENDERABLES: Array<Renderable> = [];
 const GLOBAL_CLICKABLES: Array<Clickable> = [];
@@ -29,9 +28,16 @@ abstract class Renderable implements GameObjectProperty{
     id: string = crypto.randomUUID(); 
     type: PropertyType = "renderable";
     parent: GameObject;
+    pt: Transform; //parent transform
 
     constructor(parent: GameObject){
         this.parent = parent;
+        let pt = parent.getProperty("transform");
+        if(!pt){
+            throw new Error("Cannot find transform of :"+this.parent.id);
+        }
+
+        this.pt = pt as Transform;
         GLOBAL_RENDERABLES.push(this);
     }
 
@@ -41,44 +47,113 @@ abstract class Renderable implements GameObjectProperty{
 export class Sprite {
 
     image: HTMLImageElement;
-    size: Vector2 = VECTOR2_1;
-    offset: Vector2 = VECTOR2_0;
+    size: Vector2 = Constants.VECTOR2_1;
+    offset: Vector2 = Constants.VECTOR2_0;
+
+    constructor(assetKey: string, size?: Vector2, offset?: Vector2){
+        this.image = assetReader(assetKey);    
+        if(!size){
+            this.size.x = this.image.width;
+            this.size.y = this.image.height;
+        }else{
+            this.size = size;
+        }
+        if(!offset)
+            this.offset = Constants.VECTOR2_0;
+        else
+            this.offset = offset
+
+    }
+}
+
+export class SpriteSheet{
+    spriteMap: Map<string, Sprite> = new Map();
+    assetKey: string;
+    image: HTMLImageElement;
 
     constructor(assetKey: string){
-        this.image = assetReader(assetKey);    
-        this.size.x = this.image.width;
-        this.size.y = this.image.height;
+        this.assetKey = assetKey;
+        this.image = assetReader(assetKey);
     }
+
+    addSprite(name: string, offset: Vector2, gridSize: Vector2){
+        this.spriteMap.set(name, new Sprite(this.assetKey, gridSize, offset));
+    }
+
+    getSprite(name: string): Sprite{
+        if(!this.spriteMap.has(name))
+            throw new Error("Sprite not found");
+
+        return this.spriteMap.get(name)!;
+    }
+
+    createUniformGrid(gridCount: Vector2){
+        const size: Vector2 = {x: this.image.width/gridCount.y, y: this.image.height/gridCount.x};
+
+        for(let i=0; i<gridCount.x; i++){
+            for(let j=0; j<gridCount.y; j++){
+                this.addSprite((i*gridCount.y+j).toString(), {x: j*size.x, y: i*size.y}, size);
+            }
+        }
+    }
+
 }
 
 export class SpriteRenderer extends Renderable{
 
     sprite: Sprite;
-    pt: Transform; //parent transform
-    constructor(parent: GameObject, sprite: Sprite){
+    spriteSheet: SpriteSheet | undefined;
+
+    constructor(parent: GameObject, sprite: Sprite, spriteSheet?: SpriteSheet){
         super(parent);
         this.sprite = sprite;
-        let pt = parent.getProperty("transform");
-        if(!pt){
-            throw new Error("Cannot find transform of :"+this.parent.id);
-        }
-
-        this.pt = pt as Transform;
+        this.spriteSheet = spriteSheet;
     }
 
     render(ctx: CanvasRenderingContext2D, dt: number): void {
         const i = this.sprite.image;
         const p = this.pt.position;
         const s = this.pt.scale;
-
+        const sz = this.sprite.size;
+        const of = this.sprite.offset;
         ctx.drawImage(
             i,
+            of.x,
+            of.y,
+            sz.x,
+            sz.y,
             p.x, 
             p.y,
-            p.x + i.width * s.x,
-            p.y + i.height * s.y
+            sz.x * s.x,
+            sz.y * s.x
         );
         dt;
+    }
+}
+
+export class DiscRenderer extends Renderable{
+    radius: number;
+    color: string;
+    constructor(parent: GameObject, radius: number, color:string){
+        super(parent);
+        this.radius = radius;
+        this.color = color;
+    }
+    
+    render(ctx: CanvasRenderingContext2D, dt: number): void {
+       dt;
+       ctx.beginPath();
+       ctx.arc(
+           this.pt.position.x,
+           this.pt.position.y,
+           this.radius,
+           0,
+           Math.PI*2
+       );
+       ctx.fillStyle = this.color;
+       ctx.strokeStyle = "#000000";
+       ctx.stroke();
+       ctx.fill();
     }
 }
 
