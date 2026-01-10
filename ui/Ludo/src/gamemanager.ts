@@ -34,8 +34,20 @@ export class GameManger extends GameObject{
 
     startTurn(){
         const player = this.playersRef[this.currentPlayerIndex];
+        player.dice.enabled = true;
         player.state = "ROLLING";
     }
+    
+    endTurn(){
+        const player = this.playersRef[this.currentPlayerIndex];
+        player.state = "WAITING";
 
+        this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.playersRef.length;
+    }
+    
+
+    isGameOver(): boolean{
+        return false; 
+    }
 }
 

@@ -7,7 +7,8 @@ export class BoardMapper{
     //color orientation starting from top left in clockwise direction
     //assumes the board is square and symmetrical
     orientation: Array<Color> = ["RED", "GREEN", "YELLOW", "BLUE"];
-    gridSize: number = 1/15; 
+    gridSize: number = 1/15;
+    gridCenter: number = 1/30;
     homeOfsset: number = 1/7.45;
     homePieceOffset: number = 2 / 15;
     size: number;
@@ -63,7 +64,10 @@ export class BoardMapper{
         if(position < 0){
             return this.getHomePosition(position);
         }
-        return this.redPath[position];
+        return {
+            x: this.redPath[position].x * this.gridSize * this.size + this.gridCenter * this.size,  
+            y: this.redPath[position].y * this.gridSize * this.size + this.gridCenter * this.size,
+        }
     }
 
     getDicePosition(color: Color){

@@ -288,7 +288,7 @@ function initRenderer(resolution: Vector2): void{
 
         render(renderer, dt);
 
-        if(dt > 1000/3){
+        if(dt > 1000/30){
             window.requestAnimationFrame(updateCanvas);
         }
     }

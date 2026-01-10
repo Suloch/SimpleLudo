@@ -13,12 +13,11 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +1 src/green.ts
-badd +0 src/main.ts
+badd +14 src/assets.ts
 argglobal
 %argdel
 $argadd NvimTree_1
-edit src/main.ts
+edit src/assets.ts
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
@@ -40,7 +39,7 @@ exe 'vert 2resize ' . ((&columns * 205 + 118) / 236)
 argglobal
 enew
 file NvimTree_1
-balt src/green.ts
+balt src/assets.ts
 setlocal foldmethod=manual
 setlocal foldexpr=0
 setlocal foldmarker={{{,}}}
@@ -52,7 +51,6 @@ setlocal nofoldenable
 lcd /workspace
 wincmd w
 argglobal
-balt /workspace/src/green.ts
 setlocal foldmethod=manual
 setlocal foldexpr=0
 setlocal foldmarker={{{,}}}
@@ -63,12 +61,12 @@ setlocal foldnestmax=20
 setlocal foldenable
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 13 - ((8 * winheight(0) + 31) / 62)
+let s:l = 14 - ((13 * winheight(0) + 32) / 65)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 13
-normal! 04|
+keepjumps 14
+normal! 0
 lcd /workspace
 wincmd w
 2wincmd w

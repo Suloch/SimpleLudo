@@ -32,6 +32,7 @@ const main = async () => {
     const boardMapper = new BoardMapper(bgSprite.image.height, 0.7);
     gameManager.addPlayer("sumit", boardMapper);
 
+    gameManager.startTurn();
     initRenderer({x: 800, y: 650});
     
 

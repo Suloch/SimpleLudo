@@ -7,7 +7,6 @@ function assetCounter(totalAssets: number, markAssetsLoaded: Function){
     return {
         increment: () => {
             loadedAssets++;
-            console.log(`Loaded ${loadedAssets} of ${totalAssets} assets.`);
             if(loadedAssets === totalAssets){
                markAssetsLoaded() 
             }
@@ -34,7 +33,6 @@ async function loadAssets(assetsURL: Map<string, string>){
     while(!assetsLoaded){
         await sleep(0.1)
     }
-    console.log("Assests Loaded")
 }
 
 const assetReader: (assetName: string) => HTMLImageElement = (assetName: string): HTMLImageElement => {
