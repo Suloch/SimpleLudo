@@ -7,7 +7,6 @@ import type { GameManger } from "../gamemanager";
 export type Color = "RED" | "GREEN" | "BLUE" | "YELLOW"
 export type PlayerState = "ROLLING" | "MOVING" | "WAITING"
 const randomNumberForDice = () => Math.floor(Math.random()*6 + 1);
-const fixedNumberForDice = 6;
 
 class Dice extends GameObjectWithTransform{
     value: number = 1;
@@ -26,7 +25,7 @@ class Dice extends GameObjectWithTransform{
     }
 
     roll(): void{
-        this.value = 6;
+        this.value = randomNumberForDice();
         const sr = this.getProperty('renderable') as SpriteRenderer;
         sr.sprite = sr.spriteSheet!.getSprite((this.value-1).toString());
         this.enabled = false;
