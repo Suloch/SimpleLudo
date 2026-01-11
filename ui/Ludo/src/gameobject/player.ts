@@ -38,15 +38,16 @@ export class Piece extends GameObjectWithTransform{
     gridPosition: number;
     enabled: boolean = false;
     boardMapper: BoardMapper;
-
+    color: Color
     constructor(parent: GameObject, p: number, onclick: (p: GameObject)=>void, boardMapper: BoardMapper){
         super(parent);
         this.gridPosition = p;
         this.addProperty(new CircleClickable(this, 20, onclick));
         const player = this.parent as Player;
+        this.color = player.color;
         this.addProperty(new DiscRenderer(this, 10, player.color));
         this.boardMapper = boardMapper;
-        this.transform.position = boardMapper.getPosition(p);
+        this.transform.position = boardMapper.getPosition(p, this.color);
     }
     
     canMove(n: number): boolean{
@@ -60,7 +61,7 @@ export class Piece extends GameObjectWithTransform{
             this.gridPosition = 0;
         else
             this.gridPosition = this.gridPosition + n;
-        this.transform.position = this.boardMapper.getPosition(this.gridPosition);
+        this.transform.position = this.boardMapper.getPosition(this.gridPosition, this.color);
     }
 }
 
@@ -112,7 +113,7 @@ export class Player extends GameObject{
             this.pieces.push(piece);
             this.addChildren(piece);
         }
-        const dice = new Dice(this, boardMapper.getDicePosition(color), this.onDiceClick);
+        const dice = new Dice(this, boardMapper.getDicePosition(color, 1/13), this.onDiceClick);
         this.dice = dice;
         this.addChildren(dice);
     }

@@ -15,7 +15,7 @@ export class GameManger extends GameObject{
     addPlayer(name: string, boardMapper: BoardMapper): boolean{
         //check if the color is available 
         //
-        const colors: Array<Color> = ["RED", "BLUE", "GREEN", "YELLOW"];
+        const colors: Array<Color> = ["RED", "GREEN", "BLUE", "YELLOW"];
         let colorIndex = 0;
         for(let player of this.playersRef){
             if(player.color == colors[colorIndex]){

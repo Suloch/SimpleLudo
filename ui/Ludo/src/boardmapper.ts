@@ -25,15 +25,32 @@ export class BoardMapper{
         {x: 0, y: 7}, {x: 1, y: 7}, {x: 2, y: 7}, {x: 3, y: 7}, {x: 4, y: 7}, {x: 5, y: 7},
     ];
 
+    greenPath: Array<Vector2> = [
+
+        {x: 9, y: 1}, {x: 9, y: 2}, {x: 9, y: 3}, {x: 9, y: 4}, {x: 9, y: 5},
+        {x: 6, y: 5}, {x: 6, y: 4}, {x: 6, y: 3}, {x: 6, y: 2}, {x: 6, y: 1}, {x: 6, y: 0},
+        {x: 7, y: 0}, {x: 8, y: 0}, {x: 8, y: 1}, {x: 8, y: 2}, {x: 8, y: 3}, {x: 8, y: 4}, {x: 8, y: 5},
+        {x: 9, y: 6}, {x: 10, y: 6}, {x: 11, y: 6}, {x: 12, y: 6}, {x: 13, y: 6}, {x: 14, y: 6},
+        {x: 14, y: 7}, {x: 14, y: 8}, {x: 13, y: 8}, {x: 12, y: 8}, {x: 11, y: 8}, {x: 10, y: 8}, {x: 9, y: 8},
+        {x: 8, y: 9}, {x: 8, y: 10}, {x: 8, y: 11}, {x: 8, y: 12}, {x: 8, y: 13}, {x: 8, y: 14},
+        {x: 7, y: 14}, {x: 6, y: 14}, {x: 6, y: 13}, {x: 6, y: 12}, {x: 6, y: 11}, {x: 6, y: 10}, {x: 6, y: 9},
+        {x: 5, y: 8}, {x: 4, y: 8}, {x: 3, y: 8}, {x: 2, y: 8}, {x: 1, y: 8}, {x: 0, y: 8},
+        {x: 0, y: 7}, {x: 1, y: 7}, {x: 2, y: 7}, {x: 3, y: 7}, {x: 4, y: 7}, {x: 5, y: 7},
+    ];
+
     constructor(size: number, scale: number){
         this.size = size * scale;
     }
 
-    getHomePosition(index: number): Vector2{
-        const basex = this.size*this.homeOfsset;
-        const basey = basex;
+    getHomePosition(index: number, color: Color): Vector2{
+        let basex = this.size*this.homeOfsset;
+        let basey = basex;
 
         const pieceDiff = this.size * this.homePieceOffset;
+
+        switch(color){
+            case "GREEN": basex = (1 - this.homeOfsset - this.homePieceOffset) * this.size; break;
+        }
 
         switch(index){
             case -1:
@@ -60,9 +77,9 @@ export class BoardMapper{
         return {x:0, y:0};
     }
     
-    getPosition(position: number): Vector2{
+    getPosition(position: number, color: Color): Vector2{
         if(position < 0){
-            return this.getHomePosition(position);
+            return this.getHomePosition(position, color);
         }
         return {
             x: this.redPath[position].x * this.gridSize * this.size + this.gridCenter * this.size,  
@@ -70,7 +87,11 @@ export class BoardMapper{
         }
     }
 
-    getDicePosition(color: Color){
+    getDicePosition(color: Color, diceSize: number){
+        switch(color){
+            case "RED": return {x: 0, y:0};
+            case "GREEN": return {x:(1-diceSize)*this.size, y:0};
+        }
         return {x: 0, y: 0};
     }
 }
